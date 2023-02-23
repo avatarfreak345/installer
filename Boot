@@ -1,0 +1,204 @@
+local x,y = term.getSize()
+local color = term.isColor()
+local localVersion = 1.0
+path = fs.getDir(shell.getRunningProgram())
+appList = {}
+
+function Retrieve()
+	local path = fs.getDir(shell.getRunningProgram())
+	local l,w = term.getSize()
+if not fs.exists(path.."/Functions.lua") then
+	shell.run("pastebin get 4VbEEWLm "..path.."/Functions.lua")
+	require "Functions" else
+	require "Functions"
+end
+end
+
+local function folderManager(path2,foldername)
+--foldername only used for creating folders--
+local lst = fs.list(path)
+if path2 ~= nil and fs.isDir(path2) then
+	lst = fs.list(path2)
+end
+if path2 ~= nil and foldername ~= nil then
+	if not fs.isDir(path2.."/"..foldername) then
+		fs.makeDir(path2.."/"..foldername)
+		return true else
+		return false
+	end
+end
+if path2 == nil and foldername ~= nil then
+	if not fs.isDir(path.."/"..foldername) then
+		fs.makeDir(path.."/"..foldername)
+		return true else
+		return false
+	end
+end
+end
+
+local function boot()
+	local update = true
+local bootIcon = {"0000000000","e0bbbbbb0d","ee0bbbb0dd","eee0bb0ddd","eeee00dddd","eeee00dddd","eee0bb0ddd","ee0bbbb0dd","e0bbbbbb0d","0000000000"}
+if not fs.exists(path..".root/imgs/boot.nfp") then
+	local h = fs.open(path..".root/imgs/boot.nfp" ,"w")
+	for i = 1,#bootIcon do
+		h.writeLine(bootIcon[i])
+	end
+	h.close()
+end
+local loaded = paintutils.loadImage(path..".root/imgs/boot.nfp")
+local maxX,maxY = 0,#loaded
+
+for i = 1,#loaded do
+	if #loaded > maxX then
+		maxX = #loaded
+	end
+end
+term.clear()
+paintutils.drawImage(loaded,x/2-maxX/2,y/2-maxY/2)
+term.setCursorPos(1,1)
+term.setBackgroundColor(colors.black)
+term.setTextColor(colors.yellow)
+write("Loading Libraries...")
+Retrieve()
+for i = 2,5 do
+	lPrint("",write,1,i,true,colors.black,colors.black)
+end
+paintutils.drawImage(loaded,x/2-maxX/2,y/2-maxY/2)
+lPrint("V"..localVersion,write,1,y-1,nil,colors.gray,colors.black)
+lPrint("Checking for update...",write,1,1,true,colors.gray,colors.black)
+sleep(1)
+if update then
+	lPrint("Checking for update...",write,1,1,true,colors.green,colors.black) else
+	lPrint("Checking for update...",write,1,1,true,colors.black,colors.black)
+end
+end
+
+local function importFiles(tbls,location)
+--local example = {{"pastebinID" , "File name"},{"pastebinID2","File Name 2"}}
+if not fs.isDir(location) then
+	return false,"DIR not available!"
+end
+for i = 1,#tbls do
+	get(tbls[i][1],location.."/"..tbls[i][2]..".lua")
+end
+end
+
+
+local function createAppIcon(tbl,path2)
+if not fs.isDir(path2) then
+	 fs.makeDir(path2)
+end
+local h = fs.open(path2.."/icon.nfp","w")
+for i = 1,#tbl do
+	h.writeLine(tbl[i])
+end
+h.close()
+end
+
+local function drawAppToScreen()
+local lst = fs.list(path..".root/apps")
+local lastX = 0
+local lastY = 2
+local load = nil
+
+for i = 1,#lst do
+	skip = false
+	local addX = 0
+	if fs.exists(path..".root/apps/"..lst[i].."/icon.nfp") then
+		--load = {
+			--{colors.blue,colors.purple}*6
+		--}
+		load = paintutils.loadImage(path..".root/apps/"..lst[i].."/icon.nfp")
+		if #load > 5 then
+			skip = true
+		end
+		for j = 1,#load do
+			if #load[j] > 6 then
+				skip = true
+			end
+			if i ~= 1 and j == #load and not skip then
+				lastX = lastX+#load[j]
+			end
+		end
+	end
+	if 1+lastX+#load > x then
+		lastX = 0
+		lastY = lastY+5
+	end
+	if not skip then
+		paintutils.drawImage(load,1+lastX,lastY)
+	end
+end
+end
+
+local function drawAppToScreenV1()
+local lst = fs.list(path..".root/apps")
+local skip = false
+local lastX = 0
+local yTracker = 2
+for i = 1,#lst do
+	skip = false
+	local xTracker = 0
+	if fs.exists(path..".root/apps/"..lst[i].."/icon.nfp") then
+		local load = paintutils.loadImage(path..".root/apps/"..lst[i].."/icon.nfp")
+		for j = 1,#load do
+			lPrint(#load,write,1,3,true,colors.purple)
+			for k = 1,#load[j] do
+				lPrint(string.len(load[j][k]).."/"..tostring(skip),write,1,1,true,colors.purple)
+				lPrint(load[j][k],write,1,2,true,colors.purple)
+			os.pullEvent("key")
+				if string.len(load[j][k]) > 5 then
+					skip = true
+				end
+				if not skip and string.len(load[j][k]) > xTracker then
+					xTracker = string.len(load[j][k])
+				end
+			end
+		end
+		if not skip and i ~= 1 then
+			lastX = lastX+xTracker
+		end
+		if 1+lastX >= x then
+			yTracker = yTracker+5
+			lastX = 0
+		end
+		if not skip then
+			paintutils.drawImage(load,1+lastX,yTracker)
+		end
+	end
+end
+
+end
+
+function screenClickHandler()
+local event,key,x,y = os.pullEvent("mouse_click")
+return key,x,y
+end
+
+local function rednetServices()
+local rednet,side = openModem()
+if rednet then
+	lPrint(string.char(144)..string.char(148)..string.char(149),write,x-2,1,nil,colors.green,colors.blue) else
+	lPrint(string.char(144)..string.char(148)..string.char(149),write,x-2,1,nil,colors.red,colors.blue)
+end
+end
+
+local function updateAppList()
+	if not fs.exists(path..".root/apps") then
+		folderManager(path,".root/apps")
+	end
+appList = fs.list(".root/apps")
+end
+
+local function mainMenu()
+term.setBackgroundColor(colors.blue)
+term.clear()
+lPrint("MobOS V"..localVersion,write,1,1,nil,colors.yellow)
+drawAppToScreen()
+end
+
+boot()
+updateAppList()
+mainMenu()
+rednetServices()
