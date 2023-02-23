@@ -45,7 +45,7 @@ end
 local function updateMode()
 term.clear()
 lPrint("Please do not restart. Update in progress",write,1,1,true,colors.yellow)
-gitHandler("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@https://raw.githubusercontent.com/avatarfreak345/installer/main/Boot",".tmp.lua")
+gitHandler("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@https://raw.githubusercontent.com/avatarfreak345/installer/main/Boot",path..".root/updateData/data.lua")
 fs.delete(path.."/startup.lua")
 fs.copy(path..".root/updateData/data.lua" , path.."/startup.lua")
 os.reboot()
@@ -80,7 +80,7 @@ Retrieve()
 if fs.exists(path..".root/updateData/data.lua") then
 	fs.delete(path..".root/updateData/data.lua")
 end
-get("T2yuGih5",path..".root/updateData/data.lua")
+gitHandler("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@https://raw.githubusercontent.com/avatarfreak345/installer/main/Boot",path.."/.root/updateData/data.lua")
 if fs.getSize(path..".root/updateData/data.lua") ~= fs.getSize(path.."/startup.lua") then
 	update = true
 end
