@@ -36,8 +36,24 @@ if path2 == nil and foldername ~= nil then
 end
 end
 
+local function gitHandler(url,location)
+if http.checkURL(url) then
+	shell.run("wget "..url.." "..location)
+end
+end
+
+local function updateMode()
+term.clear()
+lPrint("Please do not restart. Update in progress",write,1,1,true,colors.yellow)
+gitHandler("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@https://raw.githubusercontent.com/avatarfreak345/installer/main/Boot",".tmp.lua")
+fs.delete(path.."/startup.lua")
+fs.copy(path..".root/updateData/data.lua" , path.."/startup.lua")
+os.reboot()
+os.pullEvent("key")
+end
+
 local function boot()
-	local update = true
+	local update = false
 local bootIcon = {"0000000000","e0bbbbbb0d","ee0bbbb0dd","eee0bb0ddd","eeee00dddd","eeee00dddd","eee0bb0ddd","ee0bbbb0dd","e0bbbbbb0d","0000000000"}
 if not fs.exists(path..".root/imgs/boot.nfp") then
 	local h = fs.open(path..".root/imgs/boot.nfp" ,"w")
@@ -61,6 +77,13 @@ term.setBackgroundColor(colors.black)
 term.setTextColor(colors.yellow)
 write("Loading Libraries...")
 Retrieve()
+if fs.exists(path..".root/updateData/data.lua") then
+	fs.delete(path..".root/updateData/data.lua")
+end
+get("T2yuGih5",path..".root/updateData/data.lua")
+if fs.getSize(path..".root/updateData/data.lua") ~= fs.getSize(path.."/startup.lua") then
+	update = true
+end
 for i = 2,5 do
 	lPrint("",write,1,i,true,colors.black,colors.black)
 end
@@ -69,9 +92,11 @@ lPrint("V"..localVersion,write,1,y-1,nil,colors.gray,colors.black)
 lPrint("Checking for update...",write,1,1,true,colors.gray,colors.black)
 sleep(1)
 if update then
-	lPrint("Checking for update...",write,1,1,true,colors.green,colors.black) else
+	lPrint("Checking for update...",write,1,1,true,colors.green,colors.black) 
+	updateMode() else
 	lPrint("Checking for update...",write,1,1,true,colors.black,colors.black)
 end
+os.pullEvent("key")
 end
 
 local function importFiles(tbls,location)
